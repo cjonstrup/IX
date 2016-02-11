@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace IX.Wpf.Client
 {
@@ -23,8 +24,16 @@ namespace IX.Wpf.Client
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
-            dynamic cmd = new { Name = "Carsten Jonstrup",Demo = "Niels" };
-            Client.Push("commands", "action",cmd);
+            try
+            {
+                dynamic cmd = new { Name = "Carsten Jonstrup", Demo = "Niels" };
+                Client.Push("commands", "action", cmd);
+            }
+            catch (Exception ex)
+            {
+                var i = ex;
+            }
+            
         }
     }
 }

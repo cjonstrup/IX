@@ -1,0 +1,124 @@
+﻿@Master['layout']
+
+@Section['Content']
+
+
+<script>
+
+
+
+    angular.module('alarm', ['doowb.angular-pusher']).
+            config(['PusherServiceProvider',
+                function(PusherServiceProvider) {
+
+                    PusherServiceProvider
+                            .setToken('7b4abaf489e799ceeceb')
+                            .setOptions({});
+
+                }
+            ])
+            .controller('AlarmController',['$scope','$http','Pusher',function($scope,$http,Pusher) {
+
+                var alarmserver = this;
+
+                alarmserver.alarms = [];
+                Pusher.subscribe('channel-1', 'test_event', function (activity) {
+
+                    var result = alarmserver.alarms.filter(function (obj) {
+                        if (obj.AlarmItemName == activity.AlarmItemName || obj.Id == activity.Id) {
+                            return obj;
+                        }
+                    });
+
+                    if (result.length==0) {
+                        alarmserver.alarms.unshift(activity);
+                    }
+
+                    for (var i=0, iLen=alarmserver.alarms.length; i<iLen; i++) {
+                        if (alarmserver.alarms[i].AlarmItemName == activity.AlarmItemName || alarmserver.alarms[i].Id == activity.Id) {
+                            alarmserver.alarms[i] = activity;
+                        }
+                    }
+
+
+
+
+                });
+
+
+                $scope.Ack = function(){
+
+                    var alarm = {'AlarmItemDisplayName':'dfsdf'}
+
+                    $http.post('/alarm/ack',alarm)
+                        .success(function(data, status) {
+                            console.log(data);
+                        }).
+                    error(function(data, status, headers, config) {
+                        var message = "";
+                        for (var key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                var obj = data[key];
+                                for (var prop in obj) {
+                                    if(obj.hasOwnProperty(prop)){
+                                        message += obj[prop]+"\n";
+                                    }
+                                }
+                            }
+                        }
+                        alert(message);
+                    });
+                };
+
+
+            }]);
+
+
+
+</script>
+
+
+
+
+<div ng-controller="AlarmController as alarmServer">
+    <button type="button" class="btn btn-danger" ng-click="Ack()">Toogle</button>
+
+    <br />
+
+    <table border="1" class="table table-hover">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>State</th>
+                <th>Active time</th>
+                <th>Text</th>
+                <th>Acknowleged time</th>
+                <th>Inactive time</th>
+                <th>Name</th>
+                <th>Group text</th>
+                <th>Count</th>
+                <th>Normal time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="alarm in alarmServer.alarms" ng-class="{ 'danger'   : alarm.State == 'Active', 'warning'   : alarm.State == 'Inactive', 'success'   : alarm.State == 'Acknowledge'}">
+                <td>{{alarm.Id}}</td>
+                <td>{{alarm.State}}</td>
+                <td>{{alarm.ActiveTime}}</td>
+                <td>{{alarm.Text}}</td>
+                <td>{{alarm.AcknowledgeTime}}</td>
+                <td>{{alarm.InActiveTime}}</td>
+                <td>{{alarm.AlarmItemName}}</td>
+                <td></td>
+                <td>{{alarm.Count}}</td>
+                <td>{{alarm.NormalTime}}</td>
+                <td><button type="button" class="btn btn-danger" ng-click="Ack(alarm)">Ack</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+@EndSection
